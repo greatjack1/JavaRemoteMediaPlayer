@@ -24,28 +24,23 @@ public class RemoteMediaPlayer extends Application {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("recompile");
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Time Backup");
-String MEDIA_URL =
- "http://download.oracle.com/otndocs/products/javafx/oow2010-2.flv";
-      Media media = new Media(MEDIA_URL);
-      Group root = new Group();
-      root.autoSizeChildrenProperty();
-     
-        Scene scene = new Scene(root, 540, 210);
-MediaPlayer mediaPlayer = new MediaPlayer(media);
-mediaPlayer.
-mediaPlayer.setAutoPlay(true);
-MediaView mediaView = new MediaView(mediaPlayer);
-((Group)scene.getRoot()).getChildren().add(mediaView);
-primaryStage.setTitle("Embedded Media Player");
-     
-        primaryStage.setScene(scene);
+
+        //name the primary stage
+        primaryStage.setTitle("Treadmill Media Player");
+        //use the main scene class to get the main scene to use in this stage
+        MainScene ms = new MainScene();
+        //RemoteControl rc = new RemoteControl(ms.getMediaPlayer());
+        Thread thr = new Thread(new RemoteControl(ms.getMediaPlayer()));
+        thr.setDaemon(true);
+        thr.start();
+        //set the scene to the stage
+        primaryStage.setScene(ms.getScene());
         primaryStage.show();
+
     }
 }

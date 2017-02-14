@@ -17,6 +17,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
+import java.util.concurrent.*;
 
 public class RemoteMediaPlayer extends Application {
 
@@ -34,10 +35,8 @@ public class RemoteMediaPlayer extends Application {
         primaryStage.setTitle("Treadmill Media Player");
         //use the main scene class to get the main scene to use in this stage
         MainScene ms = new MainScene();
-        //RemoteControl rc = new RemoteControl(ms.getMediaPlayer());
-        Thread thr = new Thread(new RemoteControl(ms.getMediaPlayer()));
-        thr.setDaemon(true);
-        thr.start();
+        //create the remote control thread that handles network requests
+        RemoteControl rc = new RemoteControl(ms.getMediaPlayer());
         //set the scene to the stage
         primaryStage.setScene(ms.getScene());
         primaryStage.show();

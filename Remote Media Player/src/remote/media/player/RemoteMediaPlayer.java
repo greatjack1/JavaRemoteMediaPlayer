@@ -36,7 +36,7 @@ public class RemoteMediaPlayer extends Application {
         //use the main scene class to get the main scene to use in this stage
         MainScene ms = new MainScene();
         //create the remote control thread that handles network requests
-        RemoteControl rc = new RemoteControl(ms.getMediaPlayer());
+        RemoteControl rc = new RemoteControl(ms.getMediaPlayer(), ms);
         //set the scene to the stage
         primaryStage.setScene(ms.getScene());
         primaryStage.show();

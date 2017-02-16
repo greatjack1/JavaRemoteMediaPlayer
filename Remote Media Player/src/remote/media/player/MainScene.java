@@ -12,6 +12,8 @@ import javafx.scene.Scene;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
+
 import java.io.File;
 import javafx.application.Platform;
 
@@ -22,10 +24,10 @@ import javafx.application.Platform;
 public class MainScene {
 
     private Scene scene;
-    String file = ("file:////Users/yaakov/Downloads/shwekey.mp4");
 
-    private Media media = new Media(file);
+    private final MediaPlaylist mpl = new MediaPlaylist();
     private MediaPlayer mediaPlayer;
+    private MediaView mediaView;
 
     /**
      * This constructor initilizes the scene and adds the proper controls
@@ -36,55 +38,88 @@ public class MainScene {
         Group root = new Group();
         //create the scene
         scene = new Scene(root, 700, 700);
-        //create a media player to control the media in the media view
-        mediaPlayer = new MediaPlayer(media);
+        //set the background color of the screen to black
+        scene.setFill(Color.BLACK);
+        //create a media player to control the media in the media view and asign it the next vid from the media playlist
+        mediaPlayer = new MediaPlayer(mpl.nextVid());
         //have the media player automaticcaly start
         mediaPlayer.setAutoPlay(true);
-        //this next line of code that forces repeats is just for testing purposes only
+
+        //use the media view to display the media with the media player
+        mediaView = new MediaView(mediaPlayer);
+
+        mediaView.setFitHeight(scene.getHeight());
+        mediaView.setFitWidth(scene.getWidth());
+        //this next line of code goes to the next track once the current song ends
         mediaPlayer.setOnEndOfMedia(new Runnable() {
             @Override
             public void run() {
-                System.out.println("media ended, trying to replay");
+                System.out.println("media ended, going to next media file");
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println(mediaPlayer.getMedia().getSource());
-                        mediaPlayer.stop();
-                        mediaPlayer.play();
-                        System.out.println("Replaying");
+                        nextVid();
                     }
 
                 });
             }
-
         });
-//create a media viecw to display the media with the media player
-        MediaView mediaView = new MediaView(mediaPlayer);
-        mediaView.setFitHeight(scene.getHeight());
-        mediaView.setFitWidth(scene.getWidth());
+
 //add the media component to the group layout
         ((Group) scene.getRoot()).getChildren().add(mediaView);
 //add an event listener to the scenes hight and widt properties to adjust the media views properties
-        scene.widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
-                mediaView.setFitWidth((double) newSceneWidth);
-            }
-        });
+        scene.widthProperty()
+                .addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth,
+                            Number newSceneWidth
+                    ) {
+                        mediaView.setFitWidth((double) newSceneWidth);
+                    }
+                }
+                );
 //event listener for the height property to adjust the height when nesaccary
-        scene.heightProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight, Number newSceneHeight) {
+        scene.heightProperty()
+                .addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight,
+                            Number newSceneHeight
+                    ) {
 
-                mediaView.setFitHeight((double) newSceneHeight);
+                        mediaView.setFitHeight((double) newSceneHeight);
 
-            }
-        });
+                    }
+                }
+                );
 
     }
 
     public Scene getScene() {
         return scene;
+    }
+
+    public void nextVid() {
+        //stop the media player
+        mediaPlayer.stop();
+        //get the referance to the mediaPlayer object and set the referance to a new obect
+        mediaPlayer = new MediaPlayer(mpl.nextVid());
+        mediaView.setMediaPlayer(mediaPlayer);
+        mediaPlayer.play();
+        System.out.println("went to next media item in playlist");
+    }
+
+    public void prevVid() {
+        //stop the media player
+        mediaPlayer.stop();
+        //get the referance to the mediaPlayer object and set the referance to a new obect
+        mediaPlayer = new MediaPlayer(mpl.prevvid());
+        mediaView.setMediaPlayer(mediaPlayer);
+        mediaPlayer.play();
+        System.out.println("went to previous media item in playlist");
+    }
+
+    public MediaPlaylist getMediaPlaylist() {
+        return mpl;
     }
 
     public MediaPlayer getMediaPlayer() {

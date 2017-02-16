@@ -13,8 +13,8 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
- * This class takes a socket and controls the media player based on what the
- * socket conatins
+ * This class takes a socket and controls the media player based on which
+ * command the socket contains
  *
  * @author yaakov
  */
@@ -23,11 +23,13 @@ public class SocketHandler implements Runnable {
     public static RemoteData rd = new RemoteData();
     private Thread th;
     private final MediaPlayer mediaPlayer;
+    private final MainScene msc;
     private Socket sc;
 
-    public SocketHandler(Socket sock, MediaPlayer mp) {
+    public SocketHandler(Socket sock, MediaPlayer mp, MainScene msc) {
         sc = sock;
         mediaPlayer = mp;
+        this.msc = msc;
         th = new Thread(this);
         th.start();
     }
@@ -45,7 +47,7 @@ public class SocketHandler implements Runnable {
                             //since this play command is from the leg band only play if the comp did no pause or stop it
                             synchronized (rd) {
                                 //if statment to make sure that the computer allows playing and did not tell it to stop or pause
-                                if (rd.getCompAuto() == true && rd.getCompStop() == false && rd.getCompPause() == false) {
+                                if (rd.getCompAuto() == true) {
                                     rd.setAccelPlay(true);
                                     synchronized (mediaPlayer) {
                                         mediaPlayer.play();
@@ -63,7 +65,7 @@ public class SocketHandler implements Runnable {
                             //since this play command is from the leg band only play if the comp did no pause or stop it
                             synchronized (rd) {
                                 //if statment to make sure that the computer allows pausing and did not tell it to stop or play
-                                if (rd.getCompPlay() == false && rd.getCompStop() == false && rd.getCompAuto() == true) {
+                                if (rd.getCompAuto() == true) {
                                     rd.setAccelPlay(true);
                                     synchronized (mediaPlayer) {
                                         mediaPlayer.pause();
@@ -119,9 +121,16 @@ public class SocketHandler implements Runnable {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            System.out.println(mediaPlayer.getMedia().getSource());
-                            mediaPlayer.play();
-                            System.out.println("playing");
+                            msc.nextVid();
+                        }
+
+                    });
+                    break;
+                case "prevvideo":
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            msc.prevVid();
                         }
 
                     });
@@ -144,17 +153,17 @@ public class SocketHandler implements Runnable {
 
                     });
                     break;
-                case "auto":
+                case "stop":
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
                             synchronized (rd) {
-                                rd.setCompAuto(true);
+                                rd.setCompAuto(false);
                                 rd.setAccelPlay(false);
                                 rd.setCompPause(false);
-                                rd.setCompStop(false);
+                                rd.setCompStop(true);
                                 synchronized (mediaPlayer) {
-                                    mediaPlayer.play();
+                                    mediaPlayer.stop();
                                 }
 
                             }

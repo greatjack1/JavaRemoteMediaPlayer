@@ -30,13 +30,14 @@ public class RemoteMediaPlayer extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
+        //make this application start off full screen
+        primaryStage.setFullScreen(true);
         //name the primary stage
         primaryStage.setTitle("Treadmill Media Player");
         //use the main scene class to get the main scene to use in this stage
         MainScene ms = new MainScene();
         //create the remote control thread that handles network requests
-        RemoteControl rc = new RemoteControl(ms.getMediaPlayer(), ms);
+        RemoteControl rc = new RemoteControl(ms);
         //set the scene to the stage
         primaryStage.setScene(ms.getScene());
         primaryStage.show();

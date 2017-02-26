@@ -8,9 +8,12 @@ package remote.media.player;
 import javafx.scene.media.*;
 import java.io.*;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.util.Duration;
 
 /**
  * This class takes a socket and controls the media player based on which
@@ -22,15 +25,16 @@ public class SocketHandler implements Runnable {
 
     public static RemoteData rd = new RemoteData();
     private Thread th;
-    private final MediaPlayer mediaPlayer;
     private final MainScene msc;
     private Socket sc;
 
-    public SocketHandler(Socket sock, MediaPlayer mp, MainScene msc) {
+    public SocketHandler(Socket sock, MainScene msc) {
         sc = sock;
-        mediaPlayer = mp;
         this.msc = msc;
         th = new Thread(this);
+        //set the thread to be a deamon so that it exits with the application
+        th.setDaemon(true);
+
         th.start();
     }
 
@@ -39,6 +43,7 @@ public class SocketHandler implements Runnable {
         try {
             BufferedReader bf = new BufferedReader(new InputStreamReader(sc.getInputStream()));
             String curr = bf.readLine();
+            System.out.println("curr is " + curr);
             switch (curr) {
                 case "play":
                     Platform.runLater(new Runnable() {
@@ -49,8 +54,8 @@ public class SocketHandler implements Runnable {
                                 //if statment to make sure that the computer allows playing and did not tell it to stop or pause
                                 if (rd.getCompAuto() == true) {
                                     rd.setAccelPlay(true);
-                                    synchronized (mediaPlayer) {
-                                        mediaPlayer.play();
+                                    synchronized (msc) {
+                                        msc.play();
                                     }
                                 }
                             }
@@ -67,8 +72,8 @@ public class SocketHandler implements Runnable {
                                 //if statment to make sure that the computer allows pausing and did not tell it to stop or play
                                 if (rd.getCompAuto() == true) {
                                     rd.setAccelPlay(true);
-                                    synchronized (mediaPlayer) {
-                                        mediaPlayer.pause();
+                                    synchronized (msc) {
+                                        msc.pause();
                                     }
                                 }
                             }
@@ -87,10 +92,9 @@ public class SocketHandler implements Runnable {
                                 rd.setCompPlay(false);
                                 rd.setCompPause(true);
                                 rd.setCompStop(false);
-                                synchronized (mediaPlayer) {
-                                    //just in case that the media player was stopped so play it before you pause it
-                                    mediaPlayer.play();
-                                    mediaPlayer.pause();
+                                synchronized (msc) {
+                                    msc.play();
+                                    msc.pause();
                                 }
 
                             }
@@ -108,8 +112,14 @@ public class SocketHandler implements Runnable {
                                 rd.setCompPlay(true);
                                 rd.setCompStop(false);
                                 rd.setCompPause(false);
-                                synchronized (mediaPlayer) {
-                                    mediaPlayer.play();
+                                synchronized (msc) {
+                                    //check if the video is at the end and if it is then restart, if not then just resume
+                                    if ((msc.getMediaPlayer().getStopTime().toSeconds() == msc.getMediaPlayer().getCurrentTime().toSeconds())) {
+                                        msc.getMediaPlayer().seek(Duration.ZERO);
+                                    } else {
+                                        msc.play();
+                                    }
+
                                 }
 
                             }
@@ -144,8 +154,8 @@ public class SocketHandler implements Runnable {
                                 rd.setAccelPlay(false);
                                 rd.setCompPause(false);
                                 rd.setCompStop(false);
-                                synchronized (mediaPlayer) {
-                                    mediaPlayer.play();
+                                synchronized (msc) {
+                                    msc.play();
                                 }
 
                             }
@@ -162,11 +172,48 @@ public class SocketHandler implements Runnable {
                                 rd.setAccelPlay(false);
                                 rd.setCompPause(false);
                                 rd.setCompStop(true);
-                                synchronized (mediaPlayer) {
-                                    mediaPlayer.stop();
+                                synchronized (msc) {
+                                    msc.stop();
                                 }
 
                             }
+                        }
+
+                    });
+                    break;
+                case "playbackplace":
+                    final double durationTime = (Double.parseDouble(bf.readLine()) * 1000);
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            synchronized (msc) {
+
+                                msc.getMediaPlayer().seek(new Duration(durationTime));
+                            }
+
+                        }
+
+                    });
+                    break;
+                case "update":
+                    //this method gets the state of the media player and pipes is back over the socket
+                    Platform.runLater(() -> {
+
+                        ControlState state;
+                        synchronized (msc) {
+                            state = msc.getControlState();
+                        }
+                        try {
+
+                            OutputStream osc = sc.getOutputStream();
+                            ObjectOutputStream oos = new ObjectOutputStream(osc);
+                            oos.writeObject(state);
+
+                            oos.close();
+                            sc.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
                         }
 
                     });

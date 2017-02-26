@@ -18,14 +18,14 @@ import javafx.concurrent.Task;
  */
 public class RemoteControl implements Runnable {
 
-    private MediaPlayer mediaPlayer;
     private MainScene msc;
 
-    RemoteControl(MediaPlayer player, MainScene msc) {
+    RemoteControl(MainScene msc) {
         super();
-        mediaPlayer = player;
         this.msc = msc;
         Thread th = new Thread(this);
+        //set the thread as a daemon so that it exits when the application exists
+        th.setDaemon(true);
         th.start();
         System.out.println("In Constructor");
 
@@ -42,7 +42,7 @@ public class RemoteControl implements Runnable {
                 Socket sock = sc.accept();
                 System.out.println("Accepted a socket");
                 //pass the socket and the media player referance to SocketHandler
-                SocketHandler sh = new SocketHandler(sock, mediaPlayer, msc);
+                SocketHandler sh = new SocketHandler(sock, msc);
             }
         } catch (Exception ex) {
             ex.printStackTrace();

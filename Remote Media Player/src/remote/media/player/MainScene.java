@@ -98,9 +98,49 @@ public class MainScene {
         return scene;
     }
 
-    public void nextVid() {
-        //stop the media player
+    //The next method returns the state of the media Player
+    public ControlState getControlState() {
+        ControlState cs = new ControlState();
+        cs.currTime = mediaPlayer.getCurrentTime().toSeconds();
+        cs.startTime = mediaPlayer.getStartTime().toSeconds();
+        cs.endTime = mediaPlayer.getStopTime().toSeconds();
+
+        if ((mediaPlayer.getStatus() == MediaPlayer.Status.STOPPED) || (mediaPlayer.getStopTime().toSeconds() == mediaPlayer.getCurrentTime().toSeconds())) {
+            cs.stop = true;
+            cs.play = false;
+            cs.pause = false;
+
+        } else if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+            cs.pause = false;
+            cs.play = true;
+            cs.stop = false;
+        } //this else means that it is paused
+        else {
+            cs.stop = false;
+            cs.play = false;
+            cs.pause = true;
+        }
+        return cs;
+    }
+//the next three methods allow a thread that has a referance to this scene to pause or play or stop this media player
+
+    public void play() {
+        mediaPlayer.play();
+    }
+
+    public void stop() {
         mediaPlayer.stop();
+    }
+
+    public void pause() {
+        mediaPlayer.pause();
+    }
+
+    public void nextVid() {
+        //stop and dispose of the media player
+
+        mediaPlayer.stop();
+        mediaPlayer.dispose();
         //get the referance to the mediaPlayer object and set the referance to a new obect
         mediaPlayer = new MediaPlayer(mpl.nextVid());
         mediaView.setMediaPlayer(mediaPlayer);
@@ -109,8 +149,9 @@ public class MainScene {
     }
 
     public void prevVid() {
-        //stop the media player
+        //stop and dispose of the media player
         mediaPlayer.stop();
+        mediaPlayer.dispose();
         //get the referance to the mediaPlayer object and set the referance to a new obect
         mediaPlayer = new MediaPlayer(mpl.prevvid());
         mediaView.setMediaPlayer(mediaPlayer);

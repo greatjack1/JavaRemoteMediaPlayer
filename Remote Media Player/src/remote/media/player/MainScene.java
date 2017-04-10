@@ -51,18 +51,8 @@ public class MainScene {
         mediaView.setFitHeight(scene.getHeight());
         mediaView.setFitWidth(scene.getWidth());
         //this next line of code goes to the next track once the current song ends
-        mediaPlayer.setOnEndOfMedia(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("media ended, going to next media file");
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        nextVid();
-                    }
-
-                });
-            }
+        mediaPlayer.setOnEndOfMedia(() -> {
+            nextVid();
         });
 
 //add the media component to the group layout
@@ -98,28 +88,11 @@ public class MainScene {
         return scene;
     }
 
-    //The next method returns the state of the media Player
+    //The next method returns the state of the media Player to the ocntrol state, the rest o the props are filled in from the remote data object in the socket handeler
     public ControlState getControlState() {
         ControlState cs = new ControlState();
-        cs.currTime = mediaPlayer.getCurrentTime().toSeconds();
-        cs.startTime = mediaPlayer.getStartTime().toSeconds();
-        cs.endTime = mediaPlayer.getStopTime().toSeconds();
-
-        if ((mediaPlayer.getStatus() == MediaPlayer.Status.STOPPED) || (mediaPlayer.getStopTime().toSeconds() == mediaPlayer.getCurrentTime().toSeconds())) {
-            cs.stop = true;
-            cs.play = false;
-            cs.pause = false;
-
-        } else if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-            cs.pause = false;
-            cs.play = true;
-            cs.stop = false;
-        } //this else means that it is paused
-        else {
-            cs.stop = false;
-            cs.play = false;
-            cs.pause = true;
-        }
+        cs.setCurrTime(mediaPlayer.getCurrentTime().toSeconds());
+        cs.setEndTime(mediaPlayer.getStopTime().toSeconds());
         return cs;
     }
 //the next three methods allow a thread that has a referance to this scene to pause or play or stop this media player
@@ -136,6 +109,12 @@ public class MainScene {
         mediaPlayer.pause();
     }
 
+    public void updatePlaylist() {
+        mpl.update();
+        //have it call the next vid since we reset the counter in the playlist to zero
+        nextVid();
+    }
+
     public void nextVid() {
         //stop and dispose of the media player
 
@@ -143,6 +122,9 @@ public class MainScene {
         mediaPlayer.dispose();
         //get the referance to the mediaPlayer object and set the referance to a new obect
         mediaPlayer = new MediaPlayer(mpl.nextVid());
+        mediaPlayer.setOnEndOfMedia(() -> {
+            nextVid();
+        });
         mediaView.setMediaPlayer(mediaPlayer);
         mediaPlayer.play();
         System.out.println("went to next media item in playlist");
@@ -154,6 +136,9 @@ public class MainScene {
         mediaPlayer.dispose();
         //get the referance to the mediaPlayer object and set the referance to a new obect
         mediaPlayer = new MediaPlayer(mpl.prevvid());
+        mediaPlayer.setOnEndOfMedia(() -> {
+            nextVid();
+        });
         mediaView.setMediaPlayer(mediaPlayer);
         mediaPlayer.play();
         System.out.println("went to previous media item in playlist");

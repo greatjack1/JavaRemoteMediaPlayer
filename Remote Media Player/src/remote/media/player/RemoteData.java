@@ -13,48 +13,48 @@ package remote.media.player;
 public class RemoteData {
 
     private boolean accelPlay = false;
-    private boolean compPlay = false;
+    private boolean compPlay = true;
     private boolean compStop = false;
-    private boolean compAuto = true;
+    private boolean compAuto = false;
     private boolean compPause = false;
 
-    public boolean getCompStop() {
+    public synchronized boolean getCompStop() {
         return compStop;
     }
 
-    public boolean getCompPause() {
+    public synchronized boolean getCompPause() {
         return compPause;
     }
 
-    public boolean getCompAuto() {
+    public synchronized boolean getCompAuto() {
         return compAuto;
     }
 
-    public boolean getAccelPlay() {
+    public synchronized boolean getAccelPlay() {
         return accelPlay;
     }
 
-    public boolean getCompPlay() {
+    public synchronized boolean getCompPlay() {
         return compPlay;
     }
 
-    public void setCompPlay(boolean compPlay) {
+    public synchronized void setCompPlay(boolean compPlay) {
         this.compPlay = compPlay;
     }
 
-    public void setCompPause(boolean compPause) {
+    public synchronized void setCompPause(boolean compPause) {
         this.compPause = compPause;
     }
 
-    public void setCompAuto(boolean compAuto) {
+    public synchronized void setCompAuto(boolean compAuto) {
         this.compAuto = compAuto;
     }
 
-    public void setAccelPlay(boolean accelPlay) {
+    public synchronized void setAccelPlay(boolean accelPlay) {
         this.accelPlay = accelPlay;
     }
 
-    public void setCompStop(boolean CompStop) {
+    public synchronized void setCompStop(boolean CompStop) {
         compStop = CompStop;
     }
 }

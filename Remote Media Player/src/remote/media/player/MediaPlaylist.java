@@ -24,18 +24,22 @@ public class MediaPlaylist {
      */
     public MediaPlaylist() {
         try {
-            File fl = new File(MediaPlaylist.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            //this for loops check if the file is a movie file and if it is then adds it to the playlist
+            String path = (MediaPlaylist.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            //replace the actual name of the file with / so we get the directory
+            path = path.replace("rmp.jar", "/");
+            File fl = new File(path);
+
+//this for loops check if the file is a movie file and if it is then adds it to the playlist
+            System.out.println(fl.getPath());
             for (File file : fl.listFiles()) {
                 //if the file is a valid movie file then add it to the arraylist media
                 if (file.getName().endsWith(".mp4") || file.getName().endsWith(".flv")) {
                     //escape the spaces in the file so that it is a velid uri and then create a media object with it
-                    Media med = new Media(("file:///" + file.getPath()).replace(" ", "%20"));
+                    Media med = new Media(("file:///" + (file.getPath()).replace(" ", "%20")).replace("\\", "/"));
+                    System.out.println(med.getSource());
                     media.add(med);
                 }
-
             }
-
         } catch (URISyntaxException ex) {
             ex.printStackTrace();
         }
@@ -48,6 +52,8 @@ public class MediaPlaylist {
      */
     public void update() {
         try {
+            //clear the media playlist before we re add anything back in to it
+            media.clear();
             File fl = new File(MediaPlaylist.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             //this for loops check if the file is a movie file and if it is then adds it to the playlist
             for (File file : fl.listFiles()) {
@@ -59,6 +65,8 @@ public class MediaPlaylist {
                 }
 
             }
+            //reset the current index to zero since we just redid the playlist
+            currentIndex = 0;
 
         } catch (URISyntaxException ex) {
             ex.printStackTrace();

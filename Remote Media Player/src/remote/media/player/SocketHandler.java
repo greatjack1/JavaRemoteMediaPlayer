@@ -50,15 +50,15 @@ public class SocketHandler implements Runnable {
                         @Override
                         public void run() {
                             //since this play command is from the leg band only play if the comp did no pause or stop it
-                            synchronized (rd) {
-                                //if statment to make sure that the computer allows playing and did not tell it to stop or pause
-                                if (rd.getCompAuto() == true) {
-                                    rd.setAccelPlay(true);
-                                    synchronized (msc) {
-                                        msc.play();
-                                    }
+
+                            //if statment to make sure that the computer allows playing and did not tell it to stop or pause
+                            if (rd.getCompAuto() == true) {
+                                rd.setAccelPlay(true);
+                                synchronized (msc) {
+                                    msc.play();
                                 }
                             }
+
                         }
 
                     });
@@ -68,15 +68,15 @@ public class SocketHandler implements Runnable {
                         @Override
                         public void run() {
                             //since this play command is from the leg band only play if the comp did no pause or stop it
-                            synchronized (rd) {
-                                //if statment to make sure that the computer allows pausing and did not tell it to stop or play
-                                if (rd.getCompAuto() == true) {
-                                    rd.setAccelPlay(true);
-                                    synchronized (msc) {
-                                        msc.pause();
-                                    }
+
+                            //if statment to make sure that the computer allows pausing and did not tell it to stop or play
+                            if (rd.getCompAuto() == true) {
+                                rd.setAccelPlay(true);
+                                synchronized (msc) {
+                                    msc.pause();
                                 }
                             }
+
                         }
 
                     });
@@ -86,18 +86,29 @@ public class SocketHandler implements Runnable {
                         @Override
                         public void run() {
                             //since this play command is from the leg band only play if the comp did no pause or stop it
-                            synchronized (rd) {
-                                //the computer automatically pauses the video and sets auto mode to off
-                                rd.setCompAuto(false);
-                                rd.setCompPlay(false);
-                                rd.setCompPause(true);
-                                rd.setCompStop(false);
-                                synchronized (msc) {
-                                    msc.play();
-                                    msc.pause();
-                                }
 
+                            //the computer automatically pauses the video and sets auto mode to off
+                            rd.setCompAuto(false);
+                            rd.setCompPlay(false);
+                            rd.setCompPause(true);
+                            rd.setCompStop(false);
+                            synchronized (msc) {
+                                msc.play();
+                                msc.pause();
                             }
+
+                        }
+
+                    });
+                    break;
+                case "playlistUpdate":
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            synchronized (msc) {
+                                msc.updatePlaylist();
+                            }
+
                         }
 
                     });
@@ -107,22 +118,21 @@ public class SocketHandler implements Runnable {
                         @Override
                         public void run() {
                             //since this is permaplay so automatically pause it and set appropriate remote values
-                            synchronized (rd) {
-                                rd.setCompAuto(false);
-                                rd.setCompPlay(true);
-                                rd.setCompStop(false);
-                                rd.setCompPause(false);
-                                synchronized (msc) {
-                                    //check if the video is at the end and if it is then restart, if not then just resume
-                                    if ((msc.getMediaPlayer().getStopTime().toSeconds() == msc.getMediaPlayer().getCurrentTime().toSeconds())) {
-                                        msc.getMediaPlayer().seek(Duration.ZERO);
-                                    } else {
-                                        msc.play();
-                                    }
 
+                            rd.setCompAuto(false);
+                            rd.setCompPlay(true);
+                            rd.setCompStop(false);
+                            rd.setCompPause(false);
+                            synchronized (msc) {
+                                //check if the video is at the end and if it is then restart, if not then just resume
+                                if ((msc.getMediaPlayer().getStopTime().toSeconds() == msc.getMediaPlayer().getCurrentTime().toSeconds())) {
+                                    msc.getMediaPlayer().seek(Duration.ZERO);
+                                } else {
+                                    msc.play();
                                 }
 
                             }
+
                         }
 
                     });
@@ -149,16 +159,27 @@ public class SocketHandler implements Runnable {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            synchronized (rd) {
-                                rd.setCompAuto(true);
-                                rd.setAccelPlay(false);
-                                rd.setCompPause(false);
-                                rd.setCompStop(false);
-                                synchronized (msc) {
-                                    msc.play();
-                                }
+
+                            rd.setCompAuto(true);
+                            rd.setAccelPlay(false);
+                            rd.setCompPlay(false);
+                            rd.setCompPause(false);
+                            rd.setCompStop(false);
+                            synchronized (msc) {
+                                msc.play();
 
                             }
+                        }
+
+                    });
+                    break;
+                case "unauto": //undo the auto command
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            rd.setCompAuto(false);
+
                         }
 
                     });
@@ -167,14 +188,13 @@ public class SocketHandler implements Runnable {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            synchronized (rd) {
-                                rd.setCompAuto(false);
-                                rd.setAccelPlay(false);
-                                rd.setCompPause(false);
-                                rd.setCompStop(true);
-                                synchronized (msc) {
-                                    msc.stop();
-                                }
+
+                            rd.setCompAuto(false);
+                            rd.setAccelPlay(false);
+                            rd.setCompPause(false);
+                            rd.setCompStop(true);
+                            synchronized (msc) {
+                                msc.stop();
 
                             }
                         }
@@ -204,6 +224,11 @@ public class SocketHandler implements Runnable {
                         synchronized (msc) {
                             state = msc.getControlState();
                         }
+
+                        state.setAuto(rd.getCompAuto());
+                        state.setPlay(rd.getCompPlay());
+                        state.setPause(rd.getCompPause());
+                        state.setStop(rd.getCompStop());
                         try {
 
                             OutputStream osc = sc.getOutputStream();
